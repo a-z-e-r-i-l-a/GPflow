@@ -220,3 +220,14 @@ class GPModel(Model):
     @abc.abstractmethod
     def _build_predict(self, *args, **kwargs):
         pass
+    
+    def predictive_gradients(self, predict_at: tf.Tensor):
+        
+        predict_at = tf.Variable(predict_at, dtype=predict_at.dtype)
+        with tf.GradientTape() as t:
+            m, _ = self.predict_f(predict_at)
+            dm_dx = t.gradient(m, predict_at)
+        with tf.GradientTape() as t:
+            _, v = self.predict_f(predict_at)
+            dv_dx = t.gradient(v, predict_at)
+        return dm_dx, dv_dx
